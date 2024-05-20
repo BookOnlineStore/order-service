@@ -19,8 +19,10 @@ spring:
     user: ${spring.r2dbc.username}
     password: ${spring.r2dbc.password}
   cloud:
-    function:
-      definition:
+    stream:
+      bindings:
+        acceptOrder-out-0:
+          destination: order-accepted
   rabbitmq:
     host: localhost
     port: 5672
