@@ -1,3 +1,15 @@
+server:
+  port: 9002
+  netty:
+    connection-timeout: 2s
+    idle-timeout: 15s
+  shutdown: graceful
+
 spring:
   application:
     name: order-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+
+bookstore:
+  catalog-service-uri: "http://localhost:9001"
