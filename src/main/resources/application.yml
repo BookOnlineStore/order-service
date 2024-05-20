@@ -18,7 +18,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/bookstoredb_order
     user: ${spring.r2dbc.username}
     password: ${spring.r2dbc.password}
-
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+    connection-timeout: 5s
 # Info system
 info:
   system: Bookstore system
