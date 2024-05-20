@@ -53,4 +53,17 @@ public class BookClientTests {
                 .verifyComplete();
     }
 
+    @Test
+    void whenBookDoesNotExistsThenReturnEmpty() {
+        var isbn = "1234567891";
+        var mockResponse = new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(404);
+        mockWebServer.enqueue(mockResponse);
+
+        Mono<BookDto> book = bookClient.getBookByIsbn(isbn);
+        StepVerifier.create(book)
+                .expectNextCount(0)
+                .verifyError();
+    }
 }
