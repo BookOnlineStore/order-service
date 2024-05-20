@@ -3,5 +3,8 @@ spring:
     url: r2dbc:postgresql://bookstore-postgres/bookstoredb_order
   flyway:
     url: jdbc:postgresql://bookstore-postgres/bookstoredb_order
+  rabbitmq:
+    host: bookstore-rabbitmq
+
 bookstore:
   catalog-service-uri: http://catalog-service
