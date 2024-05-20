@@ -1,0 +1,7 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://bookstore-postgres/bookstoredb_order
+  flyway:
+    url: jdbc:postgresql://bookstore-postgres/bookstoredb_order
+bookstore:
+  catalog-service-uri: http://catalog-service
