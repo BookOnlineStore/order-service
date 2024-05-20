@@ -3,6 +3,7 @@ package com.bookstore.orderservice.order.domain;
 import com.bookstore.orderservice.book.BookClient;
 import com.bookstore.orderservice.book.BookDto;
 import com.bookstore.orderservice.order.event.OrderAcceptedMessage;
+import com.bookstore.orderservice.order.event.OrderDispatchedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -47,6 +48,12 @@ public class OrderService {
         log.info("Result of sending data for order with id {}: {}", order.id(), result);
     }
 
+    public Flux<Order> consumeOrderDispatchedEvent(Flux<OrderDispatchedMessage> flux) {
+        return flux
+                .flatMap(message -> orderRepository.findById(message.orderId())
+                .map(this::buildDispatchedOrder)
+                .flatMap(orderRepository::save));
+    }
 
     public static Order buildRejectedOrder(String isbn, int quantity) {
         return Order.of(isbn, null,
@@ -56,5 +63,21 @@ public class OrderService {
     public static Order buildAcceptedOrder(BookDto book, int quantity) {
         return Order.of(book.isbn(), book.title(),
                 book.price(), quantity, OrderStatus.ACCEPTED);
+    }
+
+    private Order buildDispatchedOrder(Order existingOrder) {
+        return new Order(
+                existingOrder.id(),
+                existingOrder.isbn(),
+                existingOrder.bookTitle(),
+                existingOrder.price(),
+                existingOrder.quantity(),
+                OrderStatus.DISPATCHED,
+                existingOrder.createdDate(),
+                existingOrder.createdBy(),
+                existingOrder.lastModifiedDate(),
+                existingOrder.lastModifiedBy(),
+                existingOrder.version()
+        );
     }
 }

@@ -23,6 +23,9 @@ spring:
       bindings:
         acceptOrder-out-0:
           destination: order-accepted
+        dispatchOrder-in-0:
+          destination: order-dispatched
+          group: ${spring.application.name}
   rabbitmq:
     host: localhost
     port: 5672
