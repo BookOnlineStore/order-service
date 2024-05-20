@@ -64,6 +64,6 @@ public class BookClientTests {
         Mono<BookDto> book = bookClient.getBookByIsbn(isbn);
         StepVerifier.create(book)
                 .expectNextCount(0)
-                .verifyError();
+                .verifyComplete();
     }
 }

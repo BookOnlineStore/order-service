@@ -2,6 +2,7 @@ package com.bookstore.orderservice.book;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -18,7 +19,8 @@ public class BookClient {
         return webClient
                 .get().uri(BOOK_ROOT_API)
                 .retrieve()
-                .bodyToMono(BookDto.class);
+                .bodyToMono(BookDto.class)
+                .onErrorResume(WebClientResponseException.NotFound.class, exception -> Mono.empty());
     }
 }
 
