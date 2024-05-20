@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -23,6 +25,7 @@ import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@Import(TestChannelBinderConfiguration.class)
 public class OrderServiceApplicationTests {
 
     @Autowired
@@ -48,7 +51,6 @@ public class OrderServiceApplicationTests {
                 postgres.getMappedPort(5432), postgres.getDatabaseName());
     }
 
-
     @Test
     void whenPostRequestAndBookAvailableThenAcceptedOrder() {
         String isbn = "1234567890";
@@ -57,7 +59,7 @@ public class OrderServiceApplicationTests {
         var orderRequest = new OrderRequest(isbn, 2);
 
         webTestClient
-                .post().uri("orders")
+                .post().uri("/orders")
                 .bodyValue(orderRequest)
                 .exchange()
                 .expectStatus().is2xxSuccessful()
