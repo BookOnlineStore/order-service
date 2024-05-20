@@ -6,9 +6,9 @@ import javax.validation.constraints.NotNull;
 import java.net.URI;
 
 @ConfigurationProperties(prefix = "bookstore")
-public class ClientProperties {
-
-    @NotNull
-    URI catalogServiceUri;
+public record ClientProperties (
+        @NotNull
+        URI catalogServiceUri
+) {
 
 }
