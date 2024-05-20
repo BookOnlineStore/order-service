@@ -1,5 +1,7 @@
 package com.bookstore.orderservice.book;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -13,6 +15,7 @@ public class BookClient {
 
     private static final String BOOK_ROOT_API = "/books/";
     private final WebClient webClient;
+    private static final Logger log = LoggerFactory.getLogger(BookClient.class);
 
     public BookClient(WebClient webClient) {
         this.webClient = webClient;
@@ -20,9 +23,11 @@ public class BookClient {
 
     public Mono<BookDto> getBookByIsbn(String isbn) {
         return webClient
-                .get().uri(BOOK_ROOT_API)
+                .get().uri(BOOK_ROOT_API + isbn)
                 .retrieve()
                 .bodyToMono(BookDto.class)
+                .doOnNext(bookDto -> log.info("BookClient retrieve book with isbn {} from " +
+                        "Catalog Service successfully.", isbn))
                 .timeout(Duration.ofSeconds(3), Mono.empty())
                 .onErrorResume(WebClientResponseException.NotFound.class,
                         exception -> Mono.empty())
