@@ -28,12 +28,12 @@ public class OrderService {
                 .flatMap(orderRepository::save);
     }
 
-    private Order buildRejectedOrder(String isbn, int quantity) {
+    public static Order buildRejectedOrder(String isbn, int quantity) {
         return Order.of(isbn, null,
                 null, quantity, OrderStatus.REJECTED);
     }
 
-    private Order buildAcceptedOrder(BookDto book, int quantity) {
+    public static Order buildAcceptedOrder(BookDto book, int quantity) {
         return Order.of(book.isbn(), book.title(),
                 book.price(), quantity, OrderStatus.ACCEPTED);
     }

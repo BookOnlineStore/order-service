@@ -2,8 +2,8 @@ CREATE table orders
 (
     id                 BIGSERIAL    not null primary key,
     isbn               varchar(255) not null,
-    book_title         varchar(255) not null,
-    price              float8       not null,
+    book_title         varchar(255),
+    price              float8,
     quantity           int          not null,
     status             varchar(255) not null,
 

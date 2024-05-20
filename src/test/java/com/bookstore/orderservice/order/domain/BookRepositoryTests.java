@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import reactor.test.StepVerifier;
 
 @DataR2dbcTest
 @Import(DataConfig.class)
@@ -41,4 +42,22 @@ public class BookRepositoryTests {
     void setup() {
 
     }
+
+    @Test
+    void findOrderByIdWhenNotExisting() {
+        StepVerifier.create(orderRepository.findById(100L))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    void createRejectOrderWhenNotAuthenticatedThenReturnDefaultMetadata() {
+        var rejectedOrder = OrderService.buildRejectedOrder("1234567890", 2);
+        StepVerifier.create(orderRepository.save(rejectedOrder))
+                .expectNextMatches(order ->
+                        order.status().equals(OrderStatus.REJECTED) &&
+                        order.createdBy().equals("unknown"))
+                .verifyComplete();
+    }
+
 }
