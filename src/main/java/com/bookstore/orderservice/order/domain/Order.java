@@ -13,7 +13,7 @@ public record Order (
     String bookTitle,
     Double price,
     Integer quantity,
-    OrderStatus orderStatus,
+    OrderStatus status,
 
     @CreatedDate
     Instant createdDate,

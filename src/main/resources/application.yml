@@ -10,6 +10,14 @@ spring:
     name: order-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/bookstoredb_order
+    username: user
+    password: password
+  flyway:
+    url: jdbc:postgresql://localhost:5432/bookstoredb_order
+    user: ${spring.r2dbc.username}
+    password: ${spring.r2dbc.password}
 
 bookstore:
   catalog-service-uri: "http://localhost:9001"
