@@ -23,6 +23,18 @@ spec:
                 command: ["sh", "-c", "sleep 5"]
           ports:
             - containerPort: 9002
+          livenessProbe:
+            httpGet:
+              port: 9002
+              path: /actuator/health/liveness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 9002
+              path: /actuator/health/readiness
+            initialDelaySeconds: 5
+            periodSeconds: 15
           volumeMounts:
             - mountPath: /workspace/config
               name: order-config-volume
