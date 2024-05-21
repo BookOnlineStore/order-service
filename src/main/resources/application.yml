@@ -26,6 +26,11 @@ spring:
         dispatchOrder-in-0:
           destination: order-dispatched
           group: ${spring.application.name}
+      rabbit:
+        bindings:
+          acceptOrder-out-0:
+            producer:
+              transacted: true
   security:
     oauth2:
       resourceserver:
