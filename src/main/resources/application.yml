@@ -26,6 +26,11 @@ spring:
         dispatchOrder-in-0:
           destination: order-dispatched
           group: ${spring.application.name}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/BookOnlineStore
   rabbitmq:
     host: localhost
     port: 5672
