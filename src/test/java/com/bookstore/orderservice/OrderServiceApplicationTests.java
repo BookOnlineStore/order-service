@@ -10,17 +10,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.keycloak.admin.client.Keycloak;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
-import org.springframework.cloud.stream.binding.OutputBindingLifecycle;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -81,6 +78,11 @@ public class OrderServiceApplicationTests {
         customerToken = authenticatedWith("customer", "password", webClient);
     }
 
+    @AfterEach
+    void clean() {
+        output.clear();
+    }
+
     @DynamicPropertySource
     static void postgresqlProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.r2dbc.url", OrderServiceApplicationTests::r2dbcUrl);
@@ -131,7 +133,7 @@ public class OrderServiceApplicationTests {
 
     @Test
     void whenGetOrdersForAnotherUserThenNotReturned() throws IOException {
-        String isbn = "1234567890";
+        String isbn = "1234567891";
         var bookDto = new BookDto(isbn, "Title", "Author", 9.9);
         given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.just(bookDto));
         var orderRequest = new OrderRequest(isbn, 3);
@@ -177,7 +179,7 @@ public class OrderServiceApplicationTests {
 
     @Test
     void whenPostRequestAndBookAvailableThenAcceptedOrder() {
-        String isbn = "1234567890";
+        String isbn = "1234567892";
         var book = new BookDto(isbn, "Title", "Author", 90.90);
         given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.just(book));
         var orderRequest = new OrderRequest(isbn, 2);
@@ -199,7 +201,7 @@ public class OrderServiceApplicationTests {
 
     @Test
     void whenPostRequestAndBookUnavailableThenRejectedOrder() {
-        String isbn = "1234567891";
+        String isbn = "1234567893";
         given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.empty());
         var orderRequest = new OrderRequest(isbn, 3);
 
