@@ -8,8 +8,8 @@ CREATE table orders
     status             varchar(255) not null,
 
     created_date       timestamp    not null,
-    created_by         varchar(255) not null,
+    created_by         varchar(255),
     last_modified_date timestamp    not null,
-    last_modified_by   varchar(255) not null,
+    last_modified_by   varchar(255),
     version            int          not null
 )
