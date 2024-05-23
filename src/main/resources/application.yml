@@ -5,6 +5,7 @@ server:
     idle-timeout: 15s
   shutdown: graceful
 
+# Spring
 spring:
   application:
     name: order-service
@@ -42,16 +43,23 @@ spring:
     username: user
     password: password
     connection-timeout: 5s
+
+# Logging
+logging:
+  pattern:
+    level: "%5p [${spring.application.name}, %X{trace_id},%X{span_id}]"
+
 # Info system
 info:
   system: Bookstore system
+  env: Development
 
 # Actuator
 management:
   endpoints:
     web:
       exposure:
-        include: info, health
+        include: info, health, env, flyway, loggers, mappings, prometheus
   endpoint:
     health:
       probes:
@@ -65,6 +73,9 @@ management:
       enabled: true
     env:
       enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 bookstore:
   catalog-service-uri: "http://localhost:9001"
