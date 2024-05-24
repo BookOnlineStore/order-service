@@ -1,5 +1,6 @@
 package com.bookstore.orderservice.order.web;
 
+import com.bookstore.orderservice.book.BookDto;
 import com.bookstore.orderservice.config.SecurityConfig;
 import com.bookstore.orderservice.order.domain.Order;
 import com.bookstore.orderservice.order.domain.OrderService;
@@ -50,6 +51,30 @@ public class OrderControllerTests {
                     assertThat(actualOrder).isNotNull();
                     assertThat(actualOrder.status()).isEqualTo(OrderStatus.REJECTED);
                 });
+    }
+
+    @Test
+    void whenBookAvailableThenSavedAcceptedOrder() {
+        var isbn = "1234567890";
+        var book = new BookDto(isbn, "Title", "Author", 19.9);
+        var orderRequest = new OrderRequest(isbn, 3);
+        BDDMockito.given(orderService.submitOrder(orderRequest.isbn(), orderRequest.quantity()))
+                .willReturn(Mono.just(OrderService.buildAcceptedOrder(book, 3)));
+
+        webTestClient
+                .mutateWith(SecurityMockServerConfigurers.mockJwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_customer")))
+                .post()
+                .uri("/orders")
+                .bodyValue(orderRequest)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody(Order.class)
+                .value(actualOrder -> {
+                    assertThat(actualOrder.isbn()).isEqualTo(isbn);
+                    assertThat(actualOrder.status()).isEqualTo(OrderStatus.ACCEPTED);
+                });
+
     }
 
 }
