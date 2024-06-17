@@ -55,12 +55,12 @@ public class OrderServiceApplicationTests {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:14.10"));
+            DockerImageName.parse("postgres:16"));
 
     @Container
     static KeycloakContainer keycloak = new KeycloakContainer(
             "quay.io/keycloak/keycloak:23.0")
-            .withRealmImportFile("test-realm-config.json");
+            .withRealmImportFile("bookstore-realm.json");
     @Autowired
     private ObjectMapper jacksonObjectMapper;
 
@@ -70,12 +70,12 @@ public class OrderServiceApplicationTests {
     @BeforeAll
     static void setup() {
         WebClient webClient = WebClient.builder()
-                .baseUrl(keycloak.getAuthServerUrl() + "realms/BookOnlineStore/protocol/openid-connect/token")
+                .baseUrl(keycloak.getAuthServerUrl() + "realms/bookstore/protocol/openid-connect/token")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .build();
 
-        employeeToken = authenticatedWith("employee", "password", webClient);
-        customerToken = authenticatedWith("customer", "password", webClient);
+        employeeToken = authenticatedWith("employee", "1", webClient);
+        customerToken = authenticatedWith("user", "1", webClient);
     }
 
     @AfterEach
@@ -91,7 +91,7 @@ public class OrderServiceApplicationTests {
         registry.add("spring.flyway.url", postgres::getJdbcUrl);
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
-                () -> keycloak.getAuthServerUrl() + "realms/BookOnlineStore");
+                () -> keycloak.getAuthServerUrl() + "realms/bookstore");
     }
 
     private static String r2dbcUrl() {
@@ -224,7 +224,8 @@ public class OrderServiceApplicationTests {
         return webClient
                 .post()
                 .body(BodyInserters.fromFormData("grant_type", "password")
-                        .with("client_id", "bookstore-test")
+                        .with("client_id", "edge-service")
+                        .with("client_secret", "cT5pq7W3XStcuFVQMhjPbRj57Iqxcu4n")
                         .with("username", username)
                         .with("password", password))
                 .retrieve()

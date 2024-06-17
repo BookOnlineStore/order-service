@@ -36,7 +36,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/BookOnlineStore
+          issuer-uri: http://localhost:8080/realms/bookstore
   rabbitmq:
     host: localhost
     port: 5672

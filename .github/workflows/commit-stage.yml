@@ -3,7 +3,7 @@ on: push
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: bookonlinestore/order-service
+  IMAGE_NAME: thainguyencoffee-bookstore/order-service
   VERSION: ${{ github.sha }}
 
 jobs:
