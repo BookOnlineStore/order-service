@@ -2,6 +2,7 @@ package com.bookstore.orderservice.order.web;
 
 import com.bookstore.orderservice.order.domain.Order;
 import com.bookstore.orderservice.order.domain.OrderService;
+import com.bookstore.orderservice.order.web.dto.OrderRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Order> submitOrder(@Valid @RequestBody OrderRequest orderRequest) {
-        return orderService.submitOrder(orderRequest.isbn(), orderRequest.quantity());
+        return orderService.submitOrder(orderRequest.getLineItems(), orderRequest.getUserInformation());
     }
 
 }

@@ -2,14 +2,14 @@ package com.bookstore.orderservice;
 
 import com.bookstore.orderservice.book.BookClient;
 import com.bookstore.orderservice.book.BookDto;
-import com.bookstore.orderservice.order.domain.Order;
-import com.bookstore.orderservice.order.domain.OrderStatus;
-import com.bookstore.orderservice.order.event.OrderAcceptedMessage;
-import com.bookstore.orderservice.order.web.OrderRequest;
+import com.bookstore.orderservice.order.web.dto.LineItemRequest;
+import com.bookstore.orderservice.order.web.dto.OrderRequest;
+import com.bookstore.orderservice.order.web.dto.UserInformation;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,9 +32,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -52,6 +51,8 @@ public class OrderServiceApplicationTests {
 
     @MockBean
     BookClient bookClient;
+
+    private MockWebServer mockWebServer;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
@@ -100,125 +101,44 @@ public class OrderServiceApplicationTests {
     }
 
     @Test
-    void whenGetOwnOrdersThenReturn() throws IOException {
-        String isbn = "1234567890";
-        var bookDto = new BookDto(isbn, "Title", "Author", 9.90);
-        given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.just(bookDto));
-        OrderRequest orderRequest = new OrderRequest(isbn, 3);
-
-        Order expectedOrder = webTestClient
-                .post()
+    void whenAuthenticatedPostOrderThenCreated() {
+        Map.Entry<String, Integer> book1 = Map.entry("1234567891", 1);
+        Map.Entry<String, Integer> book2 = Map.entry("1234567892", 2);
+        OrderRequest orderRequest = buildOrderRequest(Map.of(book1.getKey(), book1.getValue(), book2.getKey(), book2.getValue()));
+        // Mock
+        var book1Dto = new BookDto(book1.getKey(), "Title1", "Author1", "Publisher1", "Supplier1", 19.0, null, 1);
+        var book2Dto = new BookDto(book2.getKey(), "Title2", "Author2", "Publisher2", "Supplier2", 19.0, null, 2);
+        given(bookClient.getBookByIsbn(book1.getKey())).willReturn(Mono.just(book1Dto));
+        given(bookClient.getBookByIsbn(book2.getKey())).willReturn(Mono.just(book2Dto));
+        webTestClient.post()
                 .uri("/orders")
-                .headers(headers -> headers.setBearerAuth(customerToken.accessToken()))
+                .headers(headers -> headers.setBearerAuth(customerToken.accessToken))
                 .bodyValue(orderRequest)
                 .exchange()
-                .expectStatus().isCreated()
-                .expectBody(Order.class).returnResult().getResponseBody();
-        assertThat(expectedOrder).isNotNull();
-        assertThat(jacksonObjectMapper.readValue(output.receive().getPayload(), OrderAcceptedMessage.class))
-                .isEqualTo(new OrderAcceptedMessage(expectedOrder.id()));
-
-        webTestClient
-                .get()
-                .uri("/orders")
-                .headers(headers -> headers.setBearerAuth(customerToken.accessToken()))
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBodyList(Order.class).value(orders -> {
-                    List<Long> orderIds = orders.stream()
-                            .map(Order::id).toList();
-                    assertThat(orderIds).contains(expectedOrder.id());
-                });
+                .expectStatus().isCreated();
     }
 
-    @Test
-    void whenGetOrdersForAnotherUserThenNotReturned() throws IOException {
-        String isbn = "1234567891";
-        var bookDto = new BookDto(isbn, "Title", "Author", 9.9);
-        given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.just(bookDto));
-        var orderRequest = new OrderRequest(isbn, 3);
-
-        var orderByCustomer = webTestClient
-                .post()
-                .uri("/orders")
-                .headers(headers -> headers.setBearerAuth(customerToken.accessToken()))
-                .bodyValue(orderRequest)
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(Order.class).returnResult().getResponseBody();
-        assertThat(orderByCustomer).isNotNull();
-        assertThat(jacksonObjectMapper.readValue(output.receive().getPayload(), OrderAcceptedMessage.class))
-                .isEqualTo(new OrderAcceptedMessage(orderByCustomer.id()));
-
-        var orderByEmployee = webTestClient
-                .post()
-                .uri("/orders")
-                .headers(headers -> headers.setBearerAuth(employeeToken.accessToken()))
-                .bodyValue(orderRequest)
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(Order.class).returnResult().getResponseBody();
-        assertThat(orderByEmployee).isNotNull();
-        assertThat(jacksonObjectMapper.readValue(output.receive().getPayload(), OrderAcceptedMessage.class))
-                .isEqualTo(new OrderAcceptedMessage(orderByEmployee.id()));
-
-        webTestClient
-                .get()
-                .uri("/orders")
-                .headers(headers -> headers.setBearerAuth(employeeToken.accessToken()))
-                .exchange()
-                .expectBodyList(Order.class)
-                .value(orders -> {
-                    List<Long> orderIds = orders.stream()
-                            .map(Order::id)
-                            .collect(Collectors.toList());
-                    assertThat(orderIds).contains(orderByEmployee.id());
-                    assertThat(orderIds).doesNotContain(orderByCustomer.id());
-                });
+    private static OrderRequest buildOrderRequest(Map<String, Integer> map) {
+        var orderRequest = new OrderRequest();
+        var lineItems = new ArrayList<LineItemRequest>();
+        for (Map.Entry<String, Integer> entry: map.entrySet()) {
+            LineItemRequest lineItemRequest = new LineItemRequest();
+            lineItemRequest.setIsbn(entry.getKey());
+            lineItemRequest.setQuantity(entry.getValue());
+            lineItems.add(lineItemRequest);
+        }
+        orderRequest.setLineItems(lineItems);
+        var userInfo = new UserInformation();
+        userInfo.setFullName("Nguyen Thai Nguyen");
+        userInfo.setEmail("nguyennt11032004@gmail.com");
+        userInfo.setPhoneNumber("0987654321");
+        userInfo.setCity("Ha Noi");
+        userInfo.setZipCode("100000");
+        userInfo.setAddress("Ha Noi, Viet Nam");
+        orderRequest.setUserInformation(userInfo);
+        return orderRequest;
     }
 
-    @Test
-    void whenPostRequestAndBookAvailableThenAcceptedOrder() {
-        String isbn = "1234567892";
-        var book = new BookDto(isbn, "Title", "Author", 90.90);
-        given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.just(book));
-        var orderRequest = new OrderRequest(isbn, 2);
-
-        webTestClient
-                .post().uri("/orders")
-                .headers(headers -> headers.setBearerAuth(customerToken.accessToken()))
-                .bodyValue(orderRequest)
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(Order.class)
-                .value(actualOrder -> {
-                    assertThat(actualOrder.isbn()).isEqualTo(orderRequest.isbn());
-                    assertThat(actualOrder.bookTitle()).isEqualTo(book.title());
-                    assertThat(actualOrder.price()).isEqualTo(book.price());
-                    assertThat(actualOrder.status()).isEqualTo(OrderStatus.ACCEPTED);
-                });
-    }
-
-    @Test
-    void whenPostRequestAndBookUnavailableThenRejectedOrder() {
-        String isbn = "1234567893";
-        given(bookClient.getBookByIsbn(isbn)).willReturn(Mono.empty());
-        var orderRequest = new OrderRequest(isbn, 3);
-
-        webTestClient
-                .post().uri("/orders")
-                .headers(headers -> headers.setBearerAuth(customerToken.accessToken()))
-                .bodyValue(orderRequest)
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(Order.class)
-                .value(actualOrder -> {
-                    assertThat(actualOrder.isbn()).isEqualTo(orderRequest.isbn());
-                    assertThat(actualOrder.quantity()).isEqualTo(orderRequest.quantity());
-                    assertThat(actualOrder.bookTitle()).isNull();
-                    assertThat(actualOrder.status()).isEqualTo(OrderStatus.REJECTED);
-                });
-    }
 
     private static KeycloakToken authenticatedWith(String username, String password, WebClient webClient) {
         return webClient

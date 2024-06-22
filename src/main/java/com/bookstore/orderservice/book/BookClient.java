@@ -2,6 +2,7 @@ package com.bookstore.orderservice.book;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,13 +26,14 @@ public class BookClient {
         return webClient
                 .get().uri(BOOK_ROOT_API + isbn)
                 .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.empty())
                 .bodyToMono(BookDto.class)
                 .doOnNext(bookDto -> log.info("BookClient retrieve book with isbn {} from " +
                         "Catalog Service successfully.", isbn))
-                .timeout(Duration.ofSeconds(3), Mono.empty())
-                .onErrorResume(WebClientResponseException.NotFound.class,
-                        exception -> Mono.empty())
-                .retryWhen(Retry.backoff(3, Duration.ofMillis(100)))
+                .timeout(Duration.ofSeconds(3))
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(100))
+                        .filter(throwable -> throwable instanceof WebClientResponseException.InternalServerError)
+                )
                 .onErrorResume(Exception.class, exception -> Mono.empty());
     }
 }

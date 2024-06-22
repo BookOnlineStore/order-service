@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class ClientConfig {
+public class WebClientConfig {
 
     @Bean
     WebClient webClient(WebClient.Builder builder, ClientProperties clientProperties) {

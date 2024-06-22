@@ -1,35 +1,43 @@
 package com.bookstore.orderservice.order.domain;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Table("orders")
-public record Order (
+@Getter
+@Setter
+@NoArgsConstructor
+public class Order  {
     @Id
-    Long id,
-    String isbn,
-    String bookTitle,
-    Double price,
-    Integer quantity,
-    OrderStatus status,
+    private UUID id;
+    private Double totalPrice;
+    private OrderStatus status;
+
+    /*User information*/
+    private String fullName;
+    private String email;
+    private String phoneNumber;
+    private String city;
+    private String zipCode;
+    private String address;
+    /*End user information*/
 
     @CreatedDate
-    Instant createdDate,
+    private Instant createdDate;
     @CreatedBy
-    String createdBy,
+    private String createdBy;
     @LastModifiedDate
-    Instant lastModifiedDate,
+    private Instant lastModifiedDate;
     @LastModifiedBy
-    String lastModifiedBy,
+    private String lastModifiedBy;
 
     @Version
-    int version
-) {
-    public static Order of(String isbn, String bookTitle, Double price,
-                           Integer quantity, OrderStatus status) {
-        return new Order(null, isbn, bookTitle, price, quantity, status,
-                null, null, null, null, 0);
-    }
+    private int version;
+
 }

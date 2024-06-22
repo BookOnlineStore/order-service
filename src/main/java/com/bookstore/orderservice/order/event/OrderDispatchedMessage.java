@@ -1,6 +1,8 @@
 package com.bookstore.orderservice.order.event;
 
+import java.util.UUID;
+
 public record OrderDispatchedMessage (
-        Long orderId
+        UUID orderId
 ) {
 }

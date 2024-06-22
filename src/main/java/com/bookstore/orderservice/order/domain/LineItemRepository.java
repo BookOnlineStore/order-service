@@ -5,8 +5,8 @@ import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
-public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
+public interface LineItemRepository extends ReactiveCrudRepository<LineItem, Long> {
 
-    Flux<Order> findAllByCreatedBy(String createdBy);
+    Flux<LineItem> findAllByOrderId(UUID orderId);
 
 }
