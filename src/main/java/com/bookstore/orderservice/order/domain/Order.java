@@ -1,9 +1,11 @@
 package com.bookstore.orderservice.order.domain;
 
+import com.bookstore.orderservice.order.web.dto.UserInformation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.*;
+import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
@@ -20,12 +22,8 @@ public class Order  {
     private OrderStatus status;
 
     /*User information*/
-    private String fullName;
-    private String email;
-    private String phoneNumber;
-    private String city;
-    private String zipCode;
-    private String address;
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_NULL)
+    private UserInformation userInformation;
     /*End user information*/
 
     @CreatedDate

@@ -28,5 +28,6 @@ CREATE table line_items
     price     float8       not null,
     photos    varchar(255)[],
     quantity  int          not null,
+    inventory int not null ,
     version   int          not null
 );

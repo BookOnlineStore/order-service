@@ -1,12 +1,12 @@
 package com.bookstore.orderservice.order.domain;
 
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import reactor.core.publisher.Flux;
+import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.UUID;
 
-public interface LineItemRepository extends ReactiveCrudRepository<LineItem, Long> {
+public interface LineItemRepository extends CrudRepository<LineItem, Long> {
 
-    Flux<LineItem> findAllByOrderId(UUID orderId);
+    List<LineItem> findAllByOrderId(UUID orderId);
 
 }

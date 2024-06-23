@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class OrderRequest {
     @Size(min = 1, message = "Order must have at least one line item")
+    @Valid
     private List<LineItemRequest> lineItems;
     @Valid
     private UserInformation userInformation;

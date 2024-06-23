@@ -11,14 +11,14 @@ spring:
     name: order-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
-  r2dbc:
-    url: r2dbc:postgresql://localhost:5432/bookstoredb_order
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bookstoredb_order
     username: user
     password: password
   flyway:
-    url: jdbc:postgresql://localhost:5432/bookstoredb_order
-    user: ${spring.r2dbc.username}
-    password: ${spring.r2dbc.password}
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
   cloud:
     stream:
       bindings:

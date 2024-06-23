@@ -1,25 +1,27 @@
 package com.bookstore.orderservice.config;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.savedrequest.NoOpServerRequestCache;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 
-@EnableWebFluxSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeExchange(authorize -> authorize
-                        .pathMatchers("/actuator/**").permitAll()
-                        .anyExchange().authenticated()
+                .authorizeHttpRequests(authorize -> authorize
+                        .mvcMatchers("/", "/explorer/**","/actuator/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(ServerHttpSecurity.OAuth2ResourceServerSpec::jwt)
-                .requestCache(requestCacheSpec -> requestCacheSpec
-                        .requestCache(NoOpServerRequestCache.getInstance()))
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
                 .build();
     }
 

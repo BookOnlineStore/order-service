@@ -1,12 +1,16 @@
 package com.bookstore.orderservice.order.domain;
 
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import reactor.core.publisher.Flux;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import java.util.UUID;
 
-public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
+@RepositoryRestResource(path = "orders")
+public interface OrderRepository extends CrudRepository<Order, UUID> {
 
-    Flux<Order> findAllByCreatedBy(String createdBy);
-
+    @RestResource
+    Page<Order> findAllByCreatedBy(String createdBy, Pageable pageable);
 }

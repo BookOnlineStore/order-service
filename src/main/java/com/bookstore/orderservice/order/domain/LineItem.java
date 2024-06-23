@@ -1,14 +1,15 @@
 package com.bookstore.orderservice.order.domain;
 
+import com.bookstore.orderservice.book.BookDto;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 import java.util.UUID;
 
 @Table("line_items")
@@ -18,17 +19,12 @@ public class LineItem {
 
     @Id
     private Long id;
-    private UUID orderId;
     @NotNull(message = "Book is required")
+    private UUID orderId;
 
     /*Book DTO*/
-    private String isbn;
-    private String title;
-    private String author;
-    private String publisher;
-    private String supplier;
-    private Double price;
-    private List<String> photos;
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_NULL)
+    private BookDto bookDto;
     /*End Book DTO*/
 
     @NotNull(message = "Quantity is required")
