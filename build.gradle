@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     compileOnly 'org.projectlombok:lombok'
 
     runtimeOnly 'org.flywaydb:flyway-core'

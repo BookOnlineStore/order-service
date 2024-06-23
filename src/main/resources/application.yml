@@ -37,6 +37,16 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/bookstore
+      client:
+        registration:
+          keycloak:
+            client-id: edge-service
+            client-secret: cT5pq7W3XStcuFVQMhjPbRj57Iqxcu4n
+            scope: openid, roles
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            token-uri: http://localhost:8080/realms/bookstore/protocol/openid-connect/token
   rabbitmq:
     host: localhost
     port: 5672

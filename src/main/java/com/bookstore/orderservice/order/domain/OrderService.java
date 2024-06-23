@@ -78,10 +78,19 @@ public class OrderService {
         for (LineItemRequest lineItemRequest : lineItems) {
             totalPrice += processLineItem(lineItemRequest, order);
         }
+
         order.setTotalPrice(totalPrice);
         orderRepository.save(order);
+        // reduce inventory
+        reduceInventory(lineItems);
         this.publishOrderAcceptedEvent(order);
         return order;
+    }
+
+    private void reduceInventory(List<LineItemRequest> lineItems) {
+        for (LineItemRequest lineItemRequest : lineItems) {
+            bookClient.reduceInventoryByIsbn(lineItemRequest.getIsbn(), lineItemRequest.getQuantity());
+        }
     }
 
 
