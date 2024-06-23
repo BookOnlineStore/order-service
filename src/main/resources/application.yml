@@ -20,6 +20,8 @@ spring:
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
   cloud:
+    function:
+      definition: dispatchOrder
     stream:
       bindings:
         acceptOrder-out-0:

@@ -15,6 +15,7 @@ public class OrderFunctions {
 
     @Bean
     public Consumer<OrderDispatchedMessage> dispatchOrder(OrderService orderService) {
+        log.info("dispatchOrder-in-0 binding has event");
         return orderService::consumeOrderDispatchedEvent;
     }
 
