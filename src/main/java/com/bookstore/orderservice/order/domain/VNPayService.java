@@ -2,6 +2,8 @@ package com.bookstore.orderservice.order.domain;
 
 import com.bookstore.orderservice.config.VNPayUtils;
 import com.bookstore.orderservice.order.web.dto.VNPayDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,7 @@ import java.util.Map;
 @Service
 public class VNPayService {
 
+    private static final Logger log = LoggerFactory.getLogger(VNPayService.class);
     private static String vnp_PayUrl;
     private static String vnp_ReturnUrl;
     private static String vnp_TmnCode ;
@@ -53,6 +56,7 @@ public class VNPayService {
         String hashData = VNPayUtils.getPaymentURL(vnpParamsMap, false);
         String vnpSecureHash = VNPayUtils.hmacSHA512(secretKey, hashData);
         queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
+        log.warn("vnp_PayUrl {}", vnp_PayUrl);
         String paymentUrl = vnp_PayUrl + "?" + queryUrl;
         return paymentUrl;
     }

@@ -7,7 +7,10 @@ import com.bookstore.orderservice.order.web.dto.OrderRequest;
 import com.bookstore.orderservice.order.web.dto.UserInformation;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.ArrayList;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -104,6 +108,26 @@ public class OrderServiceApplicationTests {
                 .bodyValue(orderRequest)
                 .exchange()
                 .expectStatus().isCreated();
+    }
+
+
+    @Test
+    void whenAuthenticatedGetPaymentUrlThenSuccess() {
+        webTestClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/payment/vnpay")
+                        .queryParam("price", 100000l)
+                        .queryParam("bankCode", "NCB")
+                        .build()
+                )
+                .headers(headers -> headers.setBearerAuth(customerToken.accessToken))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(jsonValue -> {
+                    DocumentContext documentContext = JsonPath.parse(jsonValue);
+                    assertThat(documentContext.read("$.paymentUrl", String.class)).isNotBlank();
+                });
     }
 
     private static OrderRequest buildOrderRequest(Map<String, Integer> map) {
