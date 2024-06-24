@@ -19,7 +19,7 @@ CREATE table orders
 CREATE table line_items
 (
     id        bigserial primary key,
-    order_id  uuid         not null,
+    order_id  uuid         not null references orders(id),
     isbn      VARCHAR(255) not null,
     title     VARCHAR(255) not null,
     author    VARCHAR(255) not null,

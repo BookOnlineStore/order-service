@@ -17,7 +17,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("orders")
+@RequestMapping(path = "orders", produces = "application/json")
 public class OrderController {
 
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);

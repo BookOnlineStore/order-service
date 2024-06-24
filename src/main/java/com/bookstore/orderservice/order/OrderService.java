@@ -41,18 +41,17 @@ public class OrderService {
     }
 
 
-    @SneakyThrows
     @Transactional
     public Order submitOrder(List<LineItemRequest> lineItems, UserInformation userInformation) {
         var order = new Order();
         order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
         order.setUserInformation(userInformation);
-        orderRepository.save(order);
 
         // process line item
         long totalPrice = 0L;
         for (LineItemRequest lineItemRequest : lineItems) {
-            totalPrice += processLineItem(lineItemRequest, order);
+            LineItem lineItem = processLineItem(lineItemRequest, order);
+            totalPrice += lineItem.getBookDto().price() * lineItem.getQuantity();
         }
         order.setTotalPrice(totalPrice);
         orderRepository.save(order);
@@ -90,7 +89,7 @@ public class OrderService {
     }
 
 
-    private long processLineItem(LineItemRequest lineItemRequest, Order order)
+    private LineItem processLineItem(LineItemRequest lineItemRequest, Order order)
             throws BookNotFoundException, InsufficientStockException {
         var isbn = lineItemRequest.getIsbn();
         var quantity = lineItemRequest.getQuantity();
@@ -105,9 +104,9 @@ public class OrderService {
             lineItem.setQuantity(quantity);
             lineItem.setOrderId(order.getId());
             lineItem.setBookDto(bookDto);
-            lineItemRepository.save(lineItem);
+            order.getLineItems().add(lineItem);
 
-            return lineItem.getBookDto().price() * lineItem.getQuantity();
+            return lineItem;
         } catch (HttpClientErrorException.NotFound ex) {
             log.warn("Book with isbn {} not found", isbn);
             throw new BookNotFoundException("Book with isbn " + isbn + " not found");
