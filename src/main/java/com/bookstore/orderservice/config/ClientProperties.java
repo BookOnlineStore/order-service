@@ -8,7 +8,19 @@ import java.net.URI;
 @ConfigurationProperties(prefix = "bookstore")
 public record ClientProperties (
         @NotNull
-        URI catalogServiceUri
+        URI catalogServiceUri,
+        @NotNull
+        VNPayProperties vnPay
 ) {
+        record VNPayProperties(
+                String apiUrl,
+                String tmnCode,
+                String secretKey,
+                String returnUrl,
+                String version,
+                String command,
+                String orderType
+        ) {
 
+        }
 }

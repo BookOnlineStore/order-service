@@ -5,9 +5,11 @@ import com.bookstore.orderservice.book.BookNotFoundException;
 import com.bookstore.orderservice.book.InsufficientStockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +47,26 @@ public class BookControllerAdvice {
                 fieldError.getDefaultMessage())
         ).collect(Collectors.toList());
         return new ApiError(errorInfors);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingServletResponseParameter(MissingServletRequestParameterException ex) {
+        ApiError.ErrorInfo errorInfo = new ApiError.ErrorInfo();
+        errorInfo.setProperty(ex.getParameterName());
+        errorInfo.setMessage(ex.getMessage());
+        return ApiError.builder()
+                .errors(List.of(errorInfo)).build();
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ApiError.ErrorInfo errorInfo = new ApiError.ErrorInfo();
+        errorInfo.setProperty(ex.getName());
+        errorInfo.setMessage(ex.getName() + " should be of type " + ex.getRequiredType().getSimpleName());
+        return ApiError.builder()
+                .errors(List.of(errorInfo)).build();
     }
 
 }
