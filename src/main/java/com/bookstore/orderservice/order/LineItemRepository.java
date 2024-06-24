@@ -1,4 +1,4 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order;
 
 import org.springframework.data.repository.CrudRepository;
 

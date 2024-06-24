@@ -1,4 +1,4 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order;
 
 import com.bookstore.orderservice.book.BookDto;
 import lombok.Getter;

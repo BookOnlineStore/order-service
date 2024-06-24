@@ -1,6 +1,6 @@
 package com.bookstore.orderservice.order.event;
 
-import com.bookstore.orderservice.order.domain.OrderService;
+import com.bookstore.orderservice.order.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;

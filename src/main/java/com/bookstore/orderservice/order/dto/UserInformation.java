@@ -1,4 +1,4 @@
-package com.bookstore.orderservice.order.web.dto;
+package com.bookstore.orderservice.order.dto;
 
 import lombok.*;
 

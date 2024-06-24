@@ -1,9 +1,9 @@
 package com.bookstore.orderservice.order.web;
 
-import com.bookstore.orderservice.order.domain.Order;
-import com.bookstore.orderservice.order.domain.OrderRepository;
-import com.bookstore.orderservice.order.domain.OrderService;
-import com.bookstore.orderservice.order.web.dto.OrderRequest;
+import com.bookstore.orderservice.order.Order;
+import com.bookstore.orderservice.order.OrderRepository;
+import com.bookstore.orderservice.order.OrderService;
+import com.bookstore.orderservice.order.dto.OrderRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;

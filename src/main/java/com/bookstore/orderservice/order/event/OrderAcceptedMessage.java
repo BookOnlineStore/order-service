@@ -1,7 +1,7 @@
 package com.bookstore.orderservice.order.event;
 
-import com.bookstore.orderservice.order.domain.LineItem;
-import com.bookstore.orderservice.order.web.dto.UserInformation;
+import com.bookstore.orderservice.order.LineItem;
+import com.bookstore.orderservice.order.dto.UserInformation;
 
 import java.util.List;
 import java.util.UUID;

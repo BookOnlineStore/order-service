@@ -2,15 +2,15 @@ package com.bookstore.orderservice;
 
 import com.bookstore.orderservice.book.BookClient;
 import com.bookstore.orderservice.book.BookDto;
-import com.bookstore.orderservice.order.web.dto.LineItemRequest;
-import com.bookstore.orderservice.order.web.dto.OrderRequest;
-import com.bookstore.orderservice.order.web.dto.UserInformation;
+import com.bookstore.orderservice.order.dto.LineItemRequest;
+import com.bookstore.orderservice.order.dto.OrderRequest;
+import com.bookstore.orderservice.order.dto.PaymentRequest;
+import com.bookstore.orderservice.order.dto.UserInformation;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,6 +35,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -113,13 +114,11 @@ public class OrderServiceApplicationTests {
 
     @Test
     void whenAuthenticatedGetPaymentUrlThenSuccess() {
+        var fakeOrder = UUID.randomUUID();
+        var paymentRequest = new PaymentRequest(fakeOrder, 100000l, "NCB");
         webTestClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/payment/vnpay")
-                        .queryParam("price", 100000l)
-                        .queryParam("bankCode", "NCB")
-                        .build()
-                )
+                .uri("/payment/vnpay")
+                .bodyValue(paymentRequest)
                 .headers(headers -> headers.setBearerAuth(customerToken.accessToken))
                 .exchange()
                 .expectStatus().isOk()

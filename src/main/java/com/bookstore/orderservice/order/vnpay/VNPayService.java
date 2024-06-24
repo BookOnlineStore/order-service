@@ -1,7 +1,6 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order.vnpay;
 
-import com.bookstore.orderservice.config.VNPayUtils;
-import com.bookstore.orderservice.order.web.dto.VNPayDto;
+import com.bookstore.orderservice.order.dto.PaymentRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class VNPayService {
@@ -42,10 +42,10 @@ public class VNPayService {
         this.orderType = orderType;
     }
 
-    public String generatePaymentUrl(HttpServletRequest request, Long price) {
-        long finalPrice = price * 100L;
+    public String generatePaymentUrl(HttpServletRequest request, PaymentRequest paymentRequest) {
+        long finalPrice = paymentRequest.price() * 100L;
         String bankCode = request.getParameter("bankCode");
-        Map<String, String> vnpParamsMap = getVNPayPayload();
+        Map<String, String> vnpParamsMap = getVNPayPayload(paymentRequest.orderId());
         vnpParamsMap.put("vnp_Amount", String.valueOf(finalPrice));
         if (bankCode != null && !bankCode.isEmpty()) {
             vnpParamsMap.put("vnp_BankCode", bankCode);
@@ -61,14 +61,14 @@ public class VNPayService {
         return paymentUrl;
     }
 
-    private static Map<String, String> getVNPayPayload() {
+    private static Map<String, String> getVNPayPayload(UUID orderId) {
         var vnpParamsMap = new HashMap<String, String>();
         vnpParamsMap.put("vnp_Version", vnp_Version);
         vnpParamsMap.put("vnp_Command", vnp_Command);
         vnpParamsMap.put("vnp_TmnCode", vnp_TmnCode);
         vnpParamsMap.put("vnp_CurrCode", "VND");
-        vnpParamsMap.put("vnp_TxnRef",  VNPayUtils.getRandomNumber(8));
-        vnpParamsMap.put("vnp_OrderInfo", "Thanh toan don hang:" +  VNPayUtils.getRandomNumber(8));
+        vnpParamsMap.put("vnp_TxnRef",  orderId.toString());
+        vnpParamsMap.put("vnp_OrderInfo", "Thanh toan don hang:" +  orderId.toString());
         vnpParamsMap.put("vnp_OrderType", orderType);
         vnpParamsMap.put("vnp_Locale", "vn");
         vnpParamsMap.put("vnp_ReturnUrl", vnp_ReturnUrl);

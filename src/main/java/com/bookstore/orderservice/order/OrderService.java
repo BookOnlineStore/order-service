@@ -1,4 +1,4 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order;
 
 import com.bookstore.orderservice.book.BookClient;
 import com.bookstore.orderservice.book.BookDto;
@@ -6,8 +6,8 @@ import com.bookstore.orderservice.book.BookNotFoundException;
 import com.bookstore.orderservice.book.InsufficientStockException;
 import com.bookstore.orderservice.order.event.OrderAcceptedMessage;
 import com.bookstore.orderservice.order.event.OrderDispatchedMessage;
-import com.bookstore.orderservice.order.web.dto.LineItemRequest;
-import com.bookstore.orderservice.order.web.dto.UserInformation;
+import com.bookstore.orderservice.order.dto.LineItemRequest;
+import com.bookstore.orderservice.order.dto.UserInformation;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -38,6 +39,53 @@ public class OrderService {
         this.bookClient = bookClient;
         this.streamBridge = streamBridge;
     }
+
+
+    @SneakyThrows
+    @Transactional
+    public Order submitOrder(List<LineItemRequest> lineItems, UserInformation userInformation) {
+        var order = new Order();
+        order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
+        order.setUserInformation(userInformation);
+        orderRepository.save(order);
+
+        // process line item
+        double totalPrice = 0.0;
+        for (LineItemRequest lineItemRequest : lineItems) {
+            totalPrice += processLineItem(lineItemRequest, order);
+        }
+        order.setTotalPrice(totalPrice);
+        orderRepository.save(order);
+        // end process line item
+        return order;
+    }
+
+    public Order buildAcceptedOrder(UUID orderId) {
+        return orderRepository.findById(orderId)
+                .map(order -> {
+                    order.setStatus(OrderStatus.ACCEPTED);
+                    orderRepository.save(order);
+                    // reduce inventory
+                    reduceInventory(lineItemRepository.findAllByOrderId(orderId));
+                    // end reduce inventory
+                    return order;
+                })
+                .map(order -> {
+                    publishOrderAcceptedEvent(order);
+                    return order;
+                })
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+    }
+
+
+    public Order consumeOrderDispatchedEvent(OrderDispatchedMessage orderDispatchedMessage) {
+        return orderRepository.findById(orderDispatchedMessage.orderId()).map(order -> {
+            order.setStatus(OrderStatus.DISPATCHED);
+            orderRepository.save(order);
+            return order;
+        }).orElseThrow(() -> new OrderNotFoundException(orderDispatchedMessage.orderId()));
+    }
+
 
     private double processLineItem(LineItemRequest lineItemRequest, Order order)
             throws BookNotFoundException, InsufficientStockException {
@@ -66,36 +114,11 @@ public class OrderService {
         }
     }
 
-    @SneakyThrows
-    @Transactional
-    public Order submitOrder(List<LineItemRequest> lineItems, UserInformation userInformation) {
-        var order = new Order();
-        order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
-        order.setUserInformation(userInformation);
-        orderRepository.save(order);
-
-        // process line item
-        double totalPrice = 0.0;
-        for (LineItemRequest lineItemRequest : lineItems) {
-            totalPrice += processLineItem(lineItemRequest, order);
-        }
-        order.setTotalPrice(totalPrice);
-        orderRepository.save(order);
-        // end process line item
-
-        // reduce inventory
-        reduceInventory(lineItems);
-        // end reduce inventory
-        this.publishOrderAcceptedEvent(order);
-        return order;
-    }
-
-    private void reduceInventory(List<LineItemRequest> lineItems) {
-        for (LineItemRequest lineItemRequest : lineItems) {
-            bookClient.reduceInventoryByIsbn(lineItemRequest.getIsbn(), lineItemRequest.getQuantity());
+    private void reduceInventory(List<LineItem> lineItems) {
+        for (LineItem lineItem : lineItems) {
+            bookClient.reduceInventoryByIsbn(lineItem.getBookDto().isbn(), lineItem.getQuantity());
         }
     }
-
 
     private void publishOrderAcceptedEvent(Order order) {
         if (order.getStatus().equals(OrderStatus.REJECTED)) {
@@ -105,14 +128,6 @@ public class OrderService {
         OrderAcceptedMessage orderAcceptedMessage = new OrderAcceptedMessage(order.getId(), lineItems, order.getUserInformation());
         var result = streamBridge.send("acceptOrder-out-0", orderAcceptedMessage);
         log.info("Result of sending data for order with id {}: {}", order.getId(), result);
-    }
-
-    public Order consumeOrderDispatchedEvent(OrderDispatchedMessage orderDispatchedMessage) {
-        return orderRepository.findById(orderDispatchedMessage.orderId()).map(order -> {
-            order.setStatus(OrderStatus.DISPATCHED);
-            orderRepository.save(order);
-            return order;
-        }).orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
 }

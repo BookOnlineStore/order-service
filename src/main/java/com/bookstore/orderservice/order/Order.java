@@ -1,6 +1,6 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order;
 
-import com.bookstore.orderservice.order.web.dto.UserInformation;
+import com.bookstore.orderservice.order.dto.UserInformation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

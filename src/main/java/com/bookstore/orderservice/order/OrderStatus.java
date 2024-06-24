@@ -1,4 +1,4 @@
-package com.bookstore.orderservice.order.domain;
+package com.bookstore.orderservice.order;
 
 public enum OrderStatus {
     ACCEPTED,

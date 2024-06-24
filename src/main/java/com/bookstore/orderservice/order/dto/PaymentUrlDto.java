@@ -1,6 +1,6 @@
-package com.bookstore.orderservice.order.web.dto;
+package com.bookstore.orderservice.order.dto;
 
-public record VNPayDto (
+public record PaymentUrlDto(
         int statusCode,
         String message,
         String paymentUrl
