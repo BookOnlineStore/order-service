@@ -70,19 +70,22 @@ public class OrderService {
     @Transactional
     public Order submitOrder(List<LineItemRequest> lineItems, UserInformation userInformation) {
         var order = new Order();
-        order.setStatus(OrderStatus.ACCEPTED);
+        order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
         order.setUserInformation(userInformation);
         orderRepository.save(order);
 
+        // process line item
         double totalPrice = 0.0;
         for (LineItemRequest lineItemRequest : lineItems) {
             totalPrice += processLineItem(lineItemRequest, order);
         }
-
         order.setTotalPrice(totalPrice);
         orderRepository.save(order);
+        // end process line item
+
         // reduce inventory
         reduceInventory(lineItems);
+        // end reduce inventory
         this.publishOrderAcceptedEvent(order);
         return order;
     }
