@@ -3,6 +3,7 @@ package com.bookstore.orderservice.order.web;
 import com.bookstore.orderservice.book.BookDto;
 import com.bookstore.orderservice.book.BookNotFoundException;
 import com.bookstore.orderservice.book.InsufficientStockException;
+import com.bookstore.orderservice.order.ConsistencyDataException;
 import com.bookstore.orderservice.order.OrderNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +21,15 @@ import java.util.stream.Collectors;
  */
 @RestControllerAdvice
 public class BookControllerAdvice {
+
+    @ExceptionHandler(ConsistencyDataException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleRuntimeException(ConsistencyDataException ex) {
+        ApiError.ErrorInfo errorInfo = new ApiError.ErrorInfo();
+        errorInfo.setMessage(ex.getMessage());
+        return ApiError.builder()
+                .errors(List.of(errorInfo)).build();
+    }
 
     /**
      * Handle book not found api error.

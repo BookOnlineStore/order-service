@@ -37,8 +37,7 @@ public class VnpayController {
     @PostMapping("/vnpay")
     public ResponseEntity<?> pay(HttpServletRequest req, @Valid @RequestBody PaymentRequest paymentRequest)
             throws JsonProcessingException {
-        log.info("VNPayController attempt generate to paymentUrl with (price={}, orderId={}, req: {})",
-                paymentRequest.price(), paymentRequest.orderId(), req);
+        log.info("VNPayController attempt generate to paymentUrl with (orderId={}, req: {})", paymentRequest.orderId(), req);
         String paymentUrl = vnPayService.generatePaymentUrl(req, paymentRequest);
         log.info("VNPayController result of processing to generate to paymentUrl is (result={}, paymentUrl={})",
                 paymentUrl != null ? "true" : "false", paymentUrl);

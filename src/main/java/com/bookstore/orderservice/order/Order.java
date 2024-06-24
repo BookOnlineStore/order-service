@@ -18,7 +18,7 @@ import java.util.UUID;
 public class Order  {
     @Id
     private UUID id;
-    private Double totalPrice;
+    private Long totalPrice;
     private OrderStatus status;
 
     /*User information*/

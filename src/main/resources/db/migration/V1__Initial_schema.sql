@@ -1,7 +1,7 @@
 CREATE table orders
 (
     id                 uuid DEFAULT gen_random_uuid() primary key,
-    total_price        float8       null,
+    total_price        bigint       null,
     status             varchar(255) not null,
     full_name          varchar(255) not null,
     email              varchar(255) not null,
@@ -25,7 +25,7 @@ CREATE table line_items
     author    VARCHAR(255) not null,
     publisher VARCHAR(255) not null,
     supplier  VARCHAR(255) not null,
-    price     float8       not null,
+    price     bigint       not null,
     photos    varchar(255)[],
     quantity  int          not null,
     inventory int not null ,

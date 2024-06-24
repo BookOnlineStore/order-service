@@ -8,7 +8,7 @@ public record BookDto (
     String author,
     String publisher,
     String supplier,
-    Double price,
+    Long price,
     List<String> photos,
     Integer inventory
 ) {

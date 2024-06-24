@@ -50,7 +50,7 @@ public class OrderService {
         orderRepository.save(order);
 
         // process line item
-        double totalPrice = 0.0;
+        long totalPrice = 0L;
         for (LineItemRequest lineItemRequest : lineItems) {
             totalPrice += processLineItem(lineItemRequest, order);
         }
@@ -63,6 +63,9 @@ public class OrderService {
     public Order buildAcceptedOrder(UUID orderId) {
         return orderRepository.findById(orderId)
                 .map(order -> {
+                    if (order.getStatus() != OrderStatus.WAITING_FOR_PAYMENT) {
+                        throw new ConsistencyDataException("Order's status is not waiting for payment");
+                    }
                     order.setStatus(OrderStatus.ACCEPTED);
                     orderRepository.save(order);
                     // reduce inventory
@@ -87,7 +90,7 @@ public class OrderService {
     }
 
 
-    private double processLineItem(LineItemRequest lineItemRequest, Order order)
+    private long processLineItem(LineItemRequest lineItemRequest, Order order)
             throws BookNotFoundException, InsufficientStockException {
         var isbn = lineItemRequest.getIsbn();
         var quantity = lineItemRequest.getQuantity();

@@ -98,8 +98,8 @@ public class OrderServiceApplicationTests {
         Map.Entry<String, Integer> book2 = Map.entry("1234567892", 2);
         OrderRequest orderRequest = buildOrderRequest(Map.of(book1.getKey(), book1.getValue(), book2.getKey(), book2.getValue()));
         // Mock
-        var book1Dto = new BookDto(book1.getKey(), "Title1", "Author1", "Publisher1", "Supplier1", 19.0, null, 1);
-        var book2Dto = new BookDto(book2.getKey(), "Title2", "Author2", "Publisher2", "Supplier2", 19.0, null, 2);
+        var book1Dto = new BookDto(book1.getKey(), "Title1", "Author1", "Publisher1", "Supplier1", 1900000L, null, 1);
+        var book2Dto = new BookDto(book2.getKey(), "Title2", "Author2", "Publisher2", "Supplier2", 1900000L, null, 2);
 
         when(bookClient.getBookByIsbn(book1.getKey())).thenReturn(ResponseEntity.ok(book1Dto));
         when(bookClient.getBookByIsbn(book2.getKey())).thenReturn(ResponseEntity.ok(book2Dto));
@@ -114,8 +114,27 @@ public class OrderServiceApplicationTests {
 
     @Test
     void whenAuthenticatedGetPaymentUrlThenSuccess() {
-        var fakeOrder = UUID.randomUUID();
-        var paymentRequest = new PaymentRequest(fakeOrder, 100000l, "NCB");
+        Map.Entry<String, Integer> book1 = Map.entry("1234567891", 1);
+        Map.Entry<String, Integer> book2 = Map.entry("1234567892", 2);
+        OrderRequest orderRequest = buildOrderRequest(Map.of(book1.getKey(), book1.getValue(), book2.getKey(), book2.getValue()));
+        // Mock
+        var book1Dto = new BookDto(book1.getKey(), "Title1", "Author1", "Publisher1", "Supplier1", 1900000L, null, 1);
+        var book2Dto = new BookDto(book2.getKey(), "Title2", "Author2", "Publisher2", "Supplier2", 1900000L, null, 2);
+
+        when(bookClient.getBookByIsbn(book1.getKey())).thenReturn(ResponseEntity.ok(book1Dto));
+        when(bookClient.getBookByIsbn(book2.getKey())).thenReturn(ResponseEntity.ok(book2Dto));
+        String responseBody = webTestClient.post()
+                .uri("/orders")
+                .headers(headers -> headers.setBearerAuth(customerToken.accessToken))
+                .bodyValue(orderRequest)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(String.class)
+                .returnResult().getResponseBody();
+        String orderIdStr = JsonPath.parse(responseBody).read("$.id");
+        UUID orderId = UUID.fromString(orderIdStr);
+
+        var paymentRequest = new PaymentRequest(orderId, "NCB");
         webTestClient.post()
                 .uri("/payment/vnpay")
                 .bodyValue(paymentRequest)

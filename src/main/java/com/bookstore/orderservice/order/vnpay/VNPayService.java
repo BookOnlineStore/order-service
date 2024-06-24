@@ -1,5 +1,9 @@
 package com.bookstore.orderservice.order.vnpay;
 
+import com.bookstore.orderservice.order.ConsistencyDataException;
+import com.bookstore.orderservice.order.Order;
+import com.bookstore.orderservice.order.OrderRepository;
+import com.bookstore.orderservice.order.OrderStatus;
 import com.bookstore.orderservice.order.dto.PaymentRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,7 @@ import java.util.UUID;
 public class VNPayService {
 
     private static final Logger log = LoggerFactory.getLogger(VNPayService.class);
+    private final OrderRepository orderRepository;
     private static String vnp_PayUrl;
     private static String vnp_ReturnUrl;
     private static String vnp_TmnCode ;
@@ -26,13 +31,14 @@ public class VNPayService {
     private static String vnp_Command;
     private static String orderType;
 
-    public VNPayService(@Value("${bookstore.vnPay.api-url}") String vnpPayUrl,
+    public VNPayService(OrderRepository orderRepository, @Value("${bookstore.vnPay.api-url}") String vnpPayUrl,
                         @Value("${bookstore.vnPay.return-url}") String vnpReturnUrl,
                         @Value("${bookstore.vnPay.tmn-code}") String vnpTmnCode,
                         @Value("${bookstore.vnPay.secret-key}") String secretKey,
                         @Value("${bookstore.vnPay.version}") String vnpVersion,
                         @Value("${bookstore.vnPay.command}") String vnpCommand,
                         @Value("${bookstore.vnPay.order-type}") String orderType) {
+        this.orderRepository = orderRepository;
         vnp_PayUrl = vnpPayUrl;
         vnp_ReturnUrl = vnpReturnUrl;
         vnp_TmnCode = vnpTmnCode;
@@ -43,7 +49,15 @@ public class VNPayService {
     }
 
     public String generatePaymentUrl(HttpServletRequest request, PaymentRequest paymentRequest) {
-        long finalPrice = paymentRequest.price() * 100L;
+        Order order = orderRepository.findById(paymentRequest.orderId())
+                .map(orderPersisted -> {
+                    if (orderPersisted.getStatus() != OrderStatus.WAITING_FOR_PAYMENT) {
+                        throw new ConsistencyDataException("Order is not waiting for payment");
+                    }
+                    return orderPersisted;
+                })
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        long finalPrice = order.getTotalPrice() * 100L;
         String bankCode = request.getParameter("bankCode");
         Map<String, String> vnpParamsMap = getVNPayPayload(paymentRequest.orderId());
         vnpParamsMap.put("vnp_Amount", String.valueOf(finalPrice));
