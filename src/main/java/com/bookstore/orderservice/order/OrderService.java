@@ -123,13 +123,14 @@ public class OrderService {
     }
 
     private void publishOrderAcceptedEvent(Order order) {
-        if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            return;
+        if (order.getStatus().equals(OrderStatus.ACCEPTED)) {
+            List<LineItem> lineItems = lineItemRepository.findAllByOrderId(order.getId());
+            OrderAcceptedMessage orderAcceptedMessage = new OrderAcceptedMessage(order.getId(), lineItems, order.getUserInformation());
+            var result = streamBridge.send("acceptOrder-out-0", orderAcceptedMessage);
+            log.info("Result of sending data for order with id {}: {}", order.getId(), result);
         }
-        List<LineItem> lineItems = lineItemRepository.findAllByOrderId(order.getId());
-        OrderAcceptedMessage orderAcceptedMessage = new OrderAcceptedMessage(order.getId(), lineItems, order.getUserInformation());
-        var result = streamBridge.send("acceptOrder-out-0", orderAcceptedMessage);
-        log.info("Result of sending data for order with id {}: {}", order.getId(), result);
     }
+
+
 
 }
