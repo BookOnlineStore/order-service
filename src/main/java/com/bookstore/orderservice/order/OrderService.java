@@ -4,6 +4,7 @@ import com.bookstore.orderservice.book.BookClient;
 import com.bookstore.orderservice.book.BookDto;
 import com.bookstore.orderservice.book.BookNotFoundException;
 import com.bookstore.orderservice.book.InsufficientStockException;
+import com.bookstore.orderservice.order.event.BooksPlacedMessage;
 import com.bookstore.orderservice.order.event.OrderAcceptedMessage;
 import com.bookstore.orderservice.order.event.OrderDispatchedMessage;
 import com.bookstore.orderservice.order.dto.LineItemRequest;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,7 +70,7 @@ public class OrderService {
                     order.setStatus(OrderStatus.ACCEPTED);
                     orderRepository.save(order);
                     // reduce inventory
-                    reduceInventory(lineItemRepository.findAllByOrderId(orderId));
+                    reduceInventory(orderId, lineItemRepository.findAllByOrderId(orderId));
                     // end reduce inventory
                     return order;
                 })
@@ -116,10 +118,14 @@ public class OrderService {
         }
     }
 
-    private void reduceInventory(List<LineItem> lineItems) {
+    private void reduceInventory(UUID orderId, List<LineItem> lineItems) {
+        var mapLineItems = new HashMap<String, Integer>();
         for (LineItem lineItem : lineItems) {
-            bookClient.reduceInventoryByIsbn(lineItem.getBookDto().isbn(), lineItem.getQuantity());
+            mapLineItems.put(lineItem.getBookDto().isbn(), lineItem.getQuantity());
         }
+        BooksPlacedMessage booksPlacedMessage = new BooksPlacedMessage(orderId, mapLineItems);
+        var result = streamBridge.send("reduceInventory-out-0", booksPlacedMessage);
+        log.info("Result of sending data for list books placed with orderId {}: {}", orderId, result);
     }
 
     private void publishOrderAcceptedEvent(Order order) {

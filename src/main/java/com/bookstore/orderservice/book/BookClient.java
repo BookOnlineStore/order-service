@@ -10,7 +10,6 @@ import java.util.Map;
 public class BookClient {
 
     private static final String BOOK_ROOT_API = "/books/";
-    private static final String BOOK_REDUCE_INVENTORY_API = "/books/reduce-inventory";
     private final RestTemplate restTemplate;
 
     public BookClient(RestTemplate restTemplate) {
@@ -21,11 +20,5 @@ public class BookClient {
         return restTemplate.getForEntity(BOOK_ROOT_API + isbn, BookDto.class);
     }
 
-    public ResponseEntity<Void> reduceInventoryByIsbn(String isbn, Integer quantity) {
-        return restTemplate
-                .postForEntity(BOOK_REDUCE_INVENTORY_API
-                        , Map.of("isbn", isbn, "quantity", quantity)
-                        , Void.class);
-    }
 }
 
